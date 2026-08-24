@@ -320,7 +320,7 @@ if (opcion == '1' || methodCodeQR) {
   }
 let reason = new Boom(lastDisconnect?.error)?.output?.statusCode;
 if (reason == 405) {
-await fs.unlinkSync("./Sessioni/" + "creds.json")
+// await fs.unlinkSync("./Sessioni/" + "creds.json")
 console.log(chalk.bold.redBright(`[ ⚠️ ] 𝐂𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐬𝐨𝐬𝐭𝐢𝐭𝐮𝐢𝐭𝐚, 𝐫𝐢𝐚𝐯𝐯𝐢𝐨 𝐢𝐧 𝐜𝐨𝐫𝐬𝐨...\n𝐒𝐞 𝐚𝐩𝐩𝐚𝐫𝐞 𝐮𝐧 𝐞𝐫𝐫𝐨𝐫𝐞, 𝐫𝐢𝐜𝐨𝐦𝐢𝐧𝐜𝐢𝐚 𝐜𝐨𝐧: 𝐧𝐩𝐦 𝐬𝐭𝐚𝐫𝐭`)) 
 process.send('reset')}
 if (connection === 'close') {
