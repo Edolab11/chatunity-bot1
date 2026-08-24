@@ -114,9 +114,8 @@ const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = new NodeCache()
 const {version} = await fetchLatestBaileysVersion();
 let phoneNumber = global.botnumber
-
-const methodCodeQR = process.argv.includes("qr")
-const methodCode = !!phoneNumber || process.argv.includes("code")
+const methodCodeQR = true;
+const methodCode = false;
 const MethodMobile = process.argv.includes("mobile")
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 const question = (texto) => new Promise((resolver) => rl.question(texto, resolver))
