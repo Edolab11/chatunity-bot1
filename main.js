@@ -57,40 +57,11 @@ global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆
 
 global.db = new Low(new Memory());
 global.DATABASE = global.db;
-global.loadDatabase = async function loadDatabase() {
-  if (global.db.READ) return;
-  global.db.READ = true;
-  global.db.data = {
-    users: {},
-    chats: {},
-    stats: {},
-    msgs: {},
-    sticker: {},
-    settings: {},
-    ...(global.db.data || {})
-  };
-  global.db.chain = chain(global.db.data);
-  global.db.READ = false;
-};
-loadDatabase();
-
-
-/* Creditos a Otosaka (https://wa.me/51993966345) */
+global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {} };
+global.db.chain = chain(global.db.data);
 
 global.chatgpt = new Low(new Memory());
-global.loadChatgptDB = async function loadChatgptDB() {
-  if (global.chatgpt.READ) return;
-  global.chatgpt.READ = true;
-  global.chatgpt.data = {
-    users: {},
-    chats: {},
-    settings: {},
-    ...(global.chatgpt.data || {})
-  };
-  global.chatgpt.chain = lodash.chain(global.chatgpt.data);
-  global.chatgpt.READ = false;
-};
-// loadChatgptDB();
+global.chatgpt.data = { users: {}, chats: {}, settings: {} };
 
 /* ------------------------------------------------*/
 
