@@ -67,17 +67,6 @@ await global.db.read();
 global.db.chain = chain(global.db.data);
 await global.chatgpt.read();
 
-console.log(chalk.green('Inizializzazione connessione WhatsApp...'));
-const { useMultiFileAuthState, default: makeWASocket } = await import('@whiskeysockets/baileys');
-const { state, saveCreds } = await useMultiFileAuthState('Sessioni');
-
-global.conn = makeWASocket({
-    printQRInTerminal: true,
-    auth: state,
-    browser: ['Ubuntu', 'Chrome', '20.0.04']
-});
-
-global.conn.ev.on('creds.update', saveCreds);
 
 /*
 
