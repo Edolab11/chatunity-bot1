@@ -87,8 +87,7 @@ global.loadChatgptDB = async function loadChatgptDB() {
   global.chatgpt.chain = lodash.chain(global.chatgpt.data);
   global.chatgpt.READ = false;
 };
-loadChatgptDB();
-
+// loadChatgptDB();
 
 /* ------------------------------------------------*/
 
