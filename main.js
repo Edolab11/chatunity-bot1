@@ -68,7 +68,7 @@ async function start() {
 
     console.log(chalk.green('Inizializzazione connessione WhatsApp...'));
     const { useMultiFileAuthState, default: makeWASocket } = await import('@whiskeysockets/baileys');
-    const { state, saveCreds } = await useMultiFileAuthState('Sessioni');
+  ({ state, saveCreds } = await useMultiFileAuthState('Sessioni'));
     
     global.conn = makeWASocket({
         printQRInTerminal: true,
