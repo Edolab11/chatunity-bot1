@@ -29,6 +29,9 @@ import NodeCache from 'node-cache';
 const {CONNECTING} = ws;
 const {chain} = lodash;
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
+let phoneNumber = '';
+const methodCodeQR = true;
+const methodCode = false;
 
 protoType();
 serialize();
@@ -96,9 +99,6 @@ const {state, saveState, saveCreds} = await useMultiFileAuthState(global.authFil
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = new NodeCache()
 const {version} = await fetchLatestBaileysVersion();
-let phoneNumber = '';
-const methodCodeQR = true;
-const methodCode = false;
 const MethodMobile = process.argv.includes("mobile")
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 const question = (texto) => new Promise((resolver) => rl.question(texto, resolver))
