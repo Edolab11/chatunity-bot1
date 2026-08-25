@@ -76,12 +76,13 @@ setTimeout(async () => {
     }
 }, 3000);
 
-         const vecchioCodice = { auth: state,
+/*
+
+
 browser: ['Ubuntu', 'Chrome', '20.0.04'] };
 
         });
-    }
-}, 3000);
+        */
 
 
 global.authFile = `Sessioni`;
