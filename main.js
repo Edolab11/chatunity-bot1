@@ -55,20 +55,8 @@ global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆
 global.db = new Low(new Memory());
 global.DATABASE = global.db;
 global.loadDatabase = async function loadDatabase() {
-    if (global.db.READ) return;
-    global.db.READ = true;
-    global.db.data = {
-        users: {},
-        chats: {},
-        stats: {},
-        msgs: {},
-        sticker: {},
-        settings: {}
-    };
-    global.db.READ = false;
-};
-
-global.db.READ = null;
+  if (global.db.READ) return;
+  global.db.READ = true;
   global.db.data = {
     users: {},
     chats: {},
@@ -76,36 +64,31 @@ global.db.READ = null;
     msgs: {},
     sticker: {},
     settings: {},
-    ...(global.db.data || {}),
+    ...(global.db.data || {})
   };
   global.db.chain = chain(global.db.data);
+  global.db.READ = false;
 };
 loadDatabase();
 
+
 /* Creditos a Otosaka (https://wa.me/51993966345) */
 
-global.chatgpt = new Low(new JSONFile(path.join(__dirname, '/db/chatgpt.json')));
+global.chatgpt = new Low(new Memory());
 global.loadChatgptDB = async function loadChatgptDB() {
-  if (global.chatgpt.READ) {
-    return new Promise((resolve) =>
-      setInterval(async function() {
-        if (!global.chatgpt.READ) {
-          clearInterval(this);
-          resolve( global.chatgpt.data === null ? global.loadChatgptDB() : global.chatgpt.data );
-        }
-      }, 1 * 1000));
-  }
-  if (global.chatgpt.data !== null) return;
+  if (global.chatgpt.READ) return;
   global.chatgpt.READ = true;
-  await global.chatgpt.read().catch(console.error);
-  global.chatgpt.READ = null;
   global.chatgpt.data = {
     users: {},
-    ...(global.chatgpt.data || {}),
+    chats: {},
+    settings: {},
+    ...(global.chatgpt.data || {})
   };
   global.chatgpt.chain = lodash.chain(global.chatgpt.data);
+  global.chatgpt.READ = false;
 };
 loadChatgptDB();
+
 
 /* ------------------------------------------------*/
 
