@@ -55,28 +55,29 @@ const __dirname = global.__dirname(import.meta.url);
 global.opts = {};
 global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-@').replace(/[|\\{}()[\]^$+*?.,\-|\s]/g, '\\$&') + ']');
 
-async function start() {
-    global.db = new Low(new Memory());
-    global.DATABASE = global.db;
-    global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {} };
-    await global.db.read();
-    global.db.chain = chain(global.db.data);
+global.db = new Low(new Memory());
+global.DATABASE = global.db;
+global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {} };
 
-    global.chatgpt = new Low(new Memory());
-    global.chatgpt.data = { users: {}, chats: {}, settings: {} };
-    await global.chatgpt.read();
+global.chatgpt = new Low(new Memory());
+global.chatgpt.data = { users: {}, chats: {}, settings: {} };
 
-    console.log(chalk.green('Inizializzazione connessione WhatsApp...'));
-    const { useMultiFileAuthState, default: makeWASocket } = await import('@whiskeysockets/baileys');
-  ({ state, saveCreds } = await useMultiFileAuthState('Sessioni'));
-    
-    global.conn = makeWASocket({
-        printQRInTerminal: true,
-        auth: state,
-        browser: ['Ubuntu', 'Chrome', '20.0.04']
-    });
+// Inizializzazione sincrona dei database in RAM
+await global.db.read();
+global.db.chain = chain(global.db.data);
+await global.chatgpt.read();
 
-    global.conn.ev.on('creds.update', saveCreds);
+console.log(chalk.green('Inizializzazione connessione WhatsApp...'));
+const { useMultiFileAuthState, default: makeWASocket } = await import('@whiskeysockets/baileys');
+const { state, saveCreds } = await useMultiFileAuthState('Sessioni');
+
+global.conn = makeWASocket({
+    printQRInTerminal: true,
+    auth: state,
+    browser: ['Ubuntu', 'Chrome', '20.0.04']
+});
+
+global.conn.ev.on('creds.update', saveCreds);
 
 /*
 
