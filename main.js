@@ -63,7 +63,18 @@ global.db.chain = chain(global.db.data);
 global.chatgpt = new Low(new Memory());
 global.chatgpt.data = { users: {}, chats: {}, settings: {} };
 
-/* ------------------------------------------------*/
+setTimeout(async () => {
+    if (!global.conn) {
+        console.log(chalk.green('Forzatura avvio connessione in corso...'));
+        const { default: makeWASocket } = await import('@whiskeysockets/baileys');
+        global.conn = makeWASocket({
+            printQRInTerminal: true,
+            auth: state,
+            browser: ['Ubuntu', 'Chrome', '20.0.04']
+        });
+    }
+}, 3000);
+
 
 global.authFile = `Sessioni`;
 const {state, saveState, saveCreds} = await useMultiFileAuthState(global.authFile);
