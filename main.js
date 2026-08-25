@@ -55,15 +55,27 @@ const __dirname = global.__dirname(import.meta.url);
 global.opts = {};
 global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-.@').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']');
 
-global.db = new Low(new Memory());
-global.DATABASE = global.db;
-global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {} };
-global.db.chain = chain(global.db.data);
+async function start() {
+  global.db = new Low(new Memory());
+  global.DATABASE = global.db;
+  global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {} };
+  await global.db.read();
+  global.db.chain = chain(global.db.data);
 
-global.chatgpt = new Low(new Memory());
-global.chatgpt.data = { users: {}, chats: {}, settings: {} };
+  global.chatgpt = new Low(new Memory());
+  global.chatgpt.data = { users: {}, chats: {}, settings: {} };
+  await global.chatgpt.read();
 
-setTimeout(async () => {
+  if (!global.conn) {
+    console.log(chalk.green('Forzatura avvio connessione in corso...'));
+    const { useMultiFileAuthState, default: makeWASocket } = await import('@whiskeysockets/baileys');
+    const { state, saveCreds } = await useMultiFileAuthState('Sessioni');
+    global.conn = makeWASocket({
+      printQRInTerminal: true,
+      auth: state,
+      browser: ['Ubuntu', 'Chrome', '20.0.04']
+    });
+
     if (!global.conn) {
         console.log(chalk.green('Forzatura avvio connessione in corso...'));
         const { useMultiFileAuthState, default: makeWASocket } = await import('@whiskeysockets/baileys');
