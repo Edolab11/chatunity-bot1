@@ -52,7 +52,7 @@ global.videoListXXX = [];
 
 const __dirname = global.__dirname(import.meta.url);
 
-global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse());
+global.opts = {};
 global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-.@').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']');
 
 global.db = new Low(new Memory());
@@ -66,9 +66,16 @@ global.chatgpt.data = { users: {}, chats: {}, settings: {} };
 setTimeout(async () => {
     if (!global.conn) {
         console.log(chalk.green('Forzatura avvio connessione in corso...'));
-        const { default: makeWASocket } = await import('@whiskeysockets/baileys');
+        const { useMultiFileAuthState, default: makeWASocket } = await import('@whiskeysockets/baileys');
+        const { state, saveCreds } = await useMultiFileAuthState('Sessioni');
         global.conn = makeWASocket({
             printQRInTerminal: true,
+            auth: state,
+            browser: ['Ubuntu', 'Chrome', '20.0.04']
+        });
+    }
+}, 3000);
+
             auth: state,
             browser: ['Ubuntu', 'Chrome', '20.0.04']
         });
