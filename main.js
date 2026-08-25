@@ -76,8 +76,8 @@ setTimeout(async () => {
     }
 }, 3000);
 
-            auth: state,
-            browser: ['Ubuntu', 'Chrome', '20.0.04']
+         const vecchioCodice = { auth: state,
+
         });
     }
 }, 3000);
