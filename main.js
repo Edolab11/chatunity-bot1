@@ -19,19 +19,17 @@ import pino from 'pino';
 import Pino from 'pino';
 import {Boom} from '@hapi/boom';
 import {makeWASocket, protoType, serialize} from './lib/simple.js';
-import { Low, JSONFile, Memory } from 'lowdb';
+import {Low, JSONFile} from 'lowdb';
 import {mongoDB, mongoDBV2} from './lib/mongoDB.js';
 import store from './lib/store.js';
-const {proto} = (await import('@whiskeysockets/baileys')).default;
+const baileys = await import('@whiskeysockets/baileys');
+const {proto} = Object.keys(baileys.default ?? {}).length ? baileys.default : baileys;
 const {DisconnectReason, useMultiFileAuthState, MessageRetryMap, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, jidNormalizedUser, PHONENUMBER_MCC} = await import('@whiskeysockets/baileys');
 import readline from 'readline';
 import NodeCache from 'node-cache';
 const {CONNECTING} = ws;
 const {chain} = lodash;
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
-let phoneNumber = '';
-const methodCodeQR = true;
-const methodCode = false;
 
 protoType();
 serialize();
@@ -52,36 +50,73 @@ global.videoListXXX = [];
 
 const __dirname = global.__dirname(import.meta.url);
 
-global.opts = {};
-global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-@').replace(/[|\\{}()[\]^$+*?.,\-|\s]/g, '\\$&') + ']');
+global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse());
+global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-.@').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']');
 
-global.db = new Low(new Memory());
-global.DATABASE = global.db;
-global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {} };
+global.db = new Low(/https?:\/\//.test(opts['db'] || '') ? new cloudDBAdapter(opts['db']) : new JSONFile(`${opts._[0] ? opts._[0] + '_' : ''}database.json`));
 
-global.chatgpt = new Low(new Memory());
-global.chatgpt.data = { users: {}, chats: {}, settings: {} };
+global.DATABASE = global.db; 
+global.loadDatabase = async function loadDatabase() {
+  if (global.db.READ) {
+    return new Promise((resolve) => setInterval(async function() {
+      if (!global.db.READ) {
+        clearInterval(this);
+        resolve(global.db.data == null ? global.loadDatabase() : global.db.data);
+      }
+    }, 1 * 1000));
+  }
+  if (global.db.data !== null) return;
+  global.db.READ = true;
+  await global.db.read().catch(console.error);
+  global.db.READ = null;
+  global.db.data = {
+    users: {},
+    chats: {},
+    stats: {},
+    msgs: {},
+    sticker: {},
+    settings: {},
+    ...(global.db.data || {}),
+  };
+  global.db.chain = chain(global.db.data);
+};
+loadDatabase();
 
-// Inizializzazione sincrona dei database in RAM
-await global.db.read();
-global.db.chain = chain(global.db.data);
-await global.chatgpt.read();
+/* Creditos a Otosaka (https://wa.me/51993966345) */
 
+global.chatgpt = new Low(new JSONFile(path.join(__dirname, '/db/chatgpt.json')));
+global.loadChatgptDB = async function loadChatgptDB() {
+  if (global.chatgpt.READ) {
+    return new Promise((resolve) =>
+      setInterval(async function() {
+        if (!global.chatgpt.READ) {
+          clearInterval(this);
+          resolve( global.chatgpt.data === null ? global.loadChatgptDB() : global.chatgpt.data );
+        }
+      }, 1 * 1000));
+  }
+  if (global.chatgpt.data !== null) return;
+  global.chatgpt.READ = true;
+  await global.chatgpt.read().catch(console.error);
+  global.chatgpt.READ = null;
+  global.chatgpt.data = {
+    users: {},
+    ...(global.chatgpt.data || {}),
+  };
+  global.chatgpt.chain = lodash.chain(global.chatgpt.data);
+};
+loadChatgptDB();
 
-/*
-
-
-browser: ['Ubuntu', 'Chrome', '20.0.04'] };
-
-        });
-        */
-
+/* ------------------------------------------------*/
 
 global.authFile = `Sessioni`;
 const {state, saveState, saveCreds} = await useMultiFileAuthState(global.authFile);
 const msgRetryCounterMap = (MessageRetryMap) => { };
 const msgRetryCounterCache = new NodeCache()
 const {version} = await fetchLatestBaileysVersion();
+let phoneNumber = global.botnumber
+const methodCodeQR = true;
+const methodCode = false;
 const MethodMobile = process.argv.includes("mobile")
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 const question = (texto) => new Promise((resolver) => rl.question(texto, resolver))
@@ -91,23 +126,25 @@ let opcion
 if (methodCodeQR) {
 opcion = '1'
 }
-//if (!methodCodeQR && !methodCode && !fs.existsSync(`./${authFile}/creds.json`)) {
-//do {
-//let lineM = '⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ 》'
-//opcion = await question(chalk.greenBright(` 𝐒𝐞𝐥𝐞𝐳𝐢𝐨𝐧𝐚 𝐮𝐧𝐚 𝐨𝐩𝐳𝐢𝐨𝐧𝐞 𝐩𝐞𝐫 𝐜𝐨𝐥𝐥𝐞𝐠𝐚𝐫𝐞 𝐢𝐥 𝐭𝐮𝐨 𝐛𝐨𝐭 :\n1. 𝐓𝐫𝐚𝐦𝐢𝐭𝐞 𝐐𝐑\n2. 𝐓𝐫𝐚𝐦𝐢𝐭𝐞 𝐜𝐨𝐝𝐢𝐜𝐞 𝐚 𝟖 𝐜𝐢𝐟𝐫𝐞 \n---> `))
+if (!methodCodeQR && !methodCode && !fs.existsSync(`./${authFile}/creds.json`)) {
+do {
+let lineM = '⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ ⋯ 》'
+opcion = await question(chalk.greenBright(` 𝐒𝐞𝐥𝐞𝐳𝐢𝐨𝐧𝐚 𝐮𝐧𝐚 𝐨𝐩𝐳𝐢𝐨𝐧𝐞 𝐩𝐞𝐫 𝐜𝐨𝐥𝐥𝐞𝐠𝐚𝐫𝐞 𝐢𝐥 𝐭𝐮𝐨 𝐛𝐨𝐭 :\n1. 𝐓𝐫𝐚𝐦𝐢𝐭𝐞 𝐐𝐑\n2. 𝐓𝐫𝐚𝐦𝐢𝐭𝐞 𝐜𝐨𝐝𝐢𝐜𝐞 𝐚 𝟖 𝐜𝐢𝐟𝐫𝐞 \n---> `))
 //if (fs.existsSync(`./${authFile}/creds.json`)) {
 //console.log(chalk.bold.redBright(`PRIMERO BORRE EL ARCHIVO ${chalk.bold.greenBright("creds.json")} QUE SE ENCUENTRA EN LA CARPETA ${chalk.bold.greenBright(authFile)} Y REINICIE.`))
 //process.exit()
-//if (!/^[1-2]$/.test(opcion)) {
-
+if (!/^[1-2]$/.test(opcion)) {
+console.log(`𝐒𝐞𝐥𝐞𝐳𝐢𝐨𝐧𝐚 𝐬𝐨𝐥𝐨 𝟏 𝐨 𝟐.\n`)
+}} while (opcion !== '1' && opcion !== '2' || fs.existsSync(`./${authFile}/creds.json`))
+}
 
 console.info = () => {}
 //console.warn = () => {}
 const connectionOptions = {
 logger: pino({ level: 'silent' }),
-printQRInTerminal: true,
+printQRInTerminal: opcion == '1' ? true : methodCodeQR ? true : false,
 mobile: MethodMobile, 
-browser: ['Ubuntu', 'Chrome', '20.0.04'],
+browser: opcion == '1' ? ['𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲-𝐁𝐨𝐭 1.0', 'Safari', '2.0.0'] : methodCodeQR ? ['𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲-𝐁𝐨𝐭 1.0', 'Safari', '2.0.0'] : ['Ubuntu', 'Chrome', '110.0.5585.95'],
 auth: {
 creds: state.creds,
 keys: makeCacheableSignalKeyStore(state.keys, Pino({ level: "fatal" }).child({ level: "fatal" })),
@@ -275,9 +312,9 @@ async function connectionUpdate(update) {
   }
   if (global.db.data == null) loadDatabase();
 if (update.qr != 0 && update.qr != undefined || methodCodeQR) {
-if (opcion == '1' || methodCodeQR) 
-console.log(chalk.yellow('Scansiona questo codice QR, il codice QR scade tra 60 secondi.'));
-if (update.qr) console.log(update.qr);
+if (opcion == '1' || methodCodeQR) {
+    console.log(chalk.yellow('𝐒𝐜𝐚𝐧𝐬𝐢𝐨𝐧𝐚 𝐪𝐮𝐞𝐬𝐭𝐨 𝐜𝐨𝐝𝐢𝐜𝐞 𝐐𝐑, 𝐢𝐥 𝐜𝐨𝐝𝐢𝐜𝐞 𝐐𝐑 𝐬𝐜𝐚𝐝𝐞 𝐭𝐫𝐚 𝟔𝟎 𝐬𝐞𝐜𝐨𝐧𝐝𝐢.'));
+ }}
   if (connection == 'open') {
     await conn.groupAcceptInvite('LChd7a5px3n3Jr83egpWvr')
     console.log(chalk.green('\n𝐂𝐡𝐚𝐭𝐔𝐧𝐢𝐭𝐲-𝐁𝐨𝐭 𝐜𝐨𝐧𝐧𝐞𝐬𝐬𝐨 ✅️ \n'))
@@ -286,7 +323,7 @@ let reason = new Boom(lastDisconnect?.error)?.output?.statusCode;
 if (reason == 405) {
 // await fs.unlinkSync("./Sessioni/" + "creds.json")
 console.log(chalk.bold.redBright(`[ ⚠️ ] 𝐂𝐨𝐧𝐧𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐬𝐨𝐬𝐭𝐢𝐭𝐮𝐢𝐭𝐚, 𝐫𝐢𝐚𝐯𝐯𝐢𝐨 𝐢𝐧 𝐜𝐨𝐫𝐬𝐨...\n𝐒𝐞 𝐚𝐩𝐩𝐚𝐫𝐞 𝐮𝐧 𝐞𝐫𝐫𝐨𝐫𝐞, 𝐫𝐢𝐜𝐨𝐦𝐢𝐧𝐜𝐢𝐚 𝐜𝐨𝐧: 𝐧𝐩𝐦 𝐬𝐭𝐚𝐫𝐭`)) 
-// process.send('reset') 
+process.send('reset')}
 if (connection === 'close') {
     if (reason === DisconnectReason.badSession) {
         conn.logger.error(`[ ⚠️ ] 𝐒𝐞𝐬𝐬𝐢𝐨𝐧𝐞 𝐞𝐫𝐫𝐚𝐭𝐚, 𝐞𝐥𝐢𝐦𝐢𝐧𝐚 𝐥𝐚 𝐜𝐚𝐫𝐭𝐞𝐥𝐥𝐚 ${global.authFile} 𝐞𝐝 𝐞𝐬𝐞𝐠𝐮𝐢 𝐧𝐮𝐨𝐯𝐚𝐦𝐞𝐧𝐭𝐞 𝐥𝐚 𝐬𝐜𝐚𝐧𝐬𝐢𝐨𝐧𝐞.`);
@@ -486,4 +523,3 @@ function clockString(ms) {
   return [d, ' 𝐆𝐢𝐨𝐫𝐧𝐢 ️', h, ' 𝐎𝐫𝐞 ', m, ' 𝐌𝐢𝐧𝐮𝐭𝐢 ', s, ' 𝐒𝐞𝐜𝐨𝐧𝐝𝐢 '].map((v) => v.toString().padStart(2, 0)).join('');
 }
 _quickTest().catch(console.error);
-}}

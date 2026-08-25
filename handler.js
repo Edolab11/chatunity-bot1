@@ -10,7 +10,8 @@ import chalk from 'chalk'
 /**
  * @type {import('@whiskeysockets/baileys')}
  */
-const { proto } = (await import('@whiskeysockets/baileys')).default
+const baileys = await import('@whiskeysockets/baileys')
+const { proto } = Object.keys(baileys.default ?? {}).length ? baileys.default : baileys
 const isNumber = x => typeof x === 'number' && !isNaN(x)
 const delay = ms => isNumber(ms) && new Promise(resolve => setTimeout(function () {
     clearTimeout(this)
