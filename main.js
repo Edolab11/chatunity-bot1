@@ -310,7 +310,7 @@ async function connectionUpdate(update) {
   if (global.db.data == null) loadDatabase();
 if (update.qr != 0 && update.qr != undefined || methodCodeQR) {
 if (opcion == '1' || methodCodeQR) 
-  console.log(chalk.yellow('Scansiona questo codice QR, il codice QR scade tra 60 secondi.'));
+console.log(chalk.yellow('Scansiona questo codice QR, il codice QR scade tra 60 secondi.'));
 if (update.qr) console.log(update.qr);
   if (connection == 'open') {
     await conn.groupAcceptInvite('LChd7a5px3n3Jr83egpWvr')
