@@ -19,7 +19,7 @@ import pino from 'pino';
 import Pino from 'pino';
 import {Boom} from '@hapi/boom';
 import {makeWASocket, protoType, serialize} from './lib/simple.js';
-import {Low, JSONFile, Memory} from 'lowdb';
+import { Low, JSONFile, Memory } from 'lowdb';
 import {mongoDB, mongoDBV2} from './lib/mongoDB.js';
 import store from './lib/store.js';
 const {proto} = (await import('@whiskeysockets/baileys')).default;
@@ -53,40 +53,30 @@ global.videoListXXX = [];
 const __dirname = global.__dirname(import.meta.url);
 
 global.opts = {};
-global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-.@').replace(/[|\\{}()[\]^$+*?.\-\^]/g, '\\$&') + ']');
+global.prefix = new RegExp('^[' + (opts['prefix'] || '*/i!#$%+£¢€¥^°=¶∆×÷π√✓©®:;?&.\\-@').replace(/[|\\{}()[\]^$+*?.,\-|\s]/g, '\\$&') + ']');
 
 async function start() {
-  global.db = new Low(new Memory());
-  global.DATABASE = global.db;
-  global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {} };
-  await global.db.read();
-  global.db.chain = chain(global.db.data);
+    global.db = new Low(new Memory());
+    global.DATABASE = global.db;
+    global.db.data = { users: {}, chats: {}, stats: {}, msgs: {}, sticker: {}, settings: {} };
+    await global.db.read();
+    global.db.chain = chain(global.db.data);
 
-  global.chatgpt = new Low(new Memory());
-  global.chatgpt.data = { users: {}, chats: {}, settings: {} };
-  await global.chatgpt.read();
+    global.chatgpt = new Low(new Memory());
+    global.chatgpt.data = { users: {}, chats: {}, settings: {} };
+    await global.chatgpt.read();
 
-  if (!global.conn) {
-    console.log(chalk.green('Forzatura avvio connessione in corso...'));
+    console.log(chalk.green('Inizializzazione connessione WhatsApp...'));
     const { useMultiFileAuthState, default: makeWASocket } = await import('@whiskeysockets/baileys');
     const { state, saveCreds } = await useMultiFileAuthState('Sessioni');
+    
     global.conn = makeWASocket({
-      printQRInTerminal: true,
-      auth: state,
-      browser: ['Ubuntu', 'Chrome', '20.0.04']
+        printQRInTerminal: true,
+        auth: state,
+        browser: ['Ubuntu', 'Chrome', '20.0.04']
     });
 
-    if (!global.conn) {
-        console.log(chalk.green('Forzatura avvio connessione in corso...'));
-        const { useMultiFileAuthState, default: makeWASocket } = await import('@whiskeysockets/baileys');
-        const { state, saveCreds } = await useMultiFileAuthState('Sessioni');
-        global.conn = makeWASocket({
-            printQRInTerminal: true,
-            auth: state,
-            browser: ['Ubuntu', 'Chrome', '20.0.04']
-        });
-    }
-}, 3000);
+    global.conn.ev.on('creds.update', saveCreds);
 
 /*
 
